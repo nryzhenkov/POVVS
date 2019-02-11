@@ -14,7 +14,6 @@ int main(int argc, char* argv[])
  int file_ds;
  pid_t pid;
  struct sembuf sb, sb2;
- //char char_buff[block_size];
  ssize_t chars;
  char *char_shm;
 
@@ -24,7 +23,7 @@ int main(int argc, char* argv[])
   return -1;
  }
  
- int sem_id = semget(106, 2,  0666 | IPC_CREAT);
+ int sem_id = semget(100, 2,  0666 | IPC_CREAT);
 
  if (sem_id == -1)
  {
@@ -32,7 +31,7 @@ int main(int argc, char* argv[])
   return -1;
  }
 
- int shm_id = shmget(101, (block_size + 2) * sizeof(int), 0666 | IPC_CREAT);
+ int shm_id = shmget(100, (block_size + 1) * sizeof(char), 0666 | IPC_CREAT);
 
  if (shm_id == -1)
  {
@@ -62,23 +61,17 @@ int main(int argc, char* argv[])
 
   semop(sem_id, &sb, 1);
   
-  while ((chars = write(file_ds, char_shm, char_shm[block_size + 1])) > 0)
+  while ((chars = write(file_ds, char_shm, char_shm[block_size])) > 0)
   {
 
    semop(sem_id, &sb2, 1);
-   printf("test \n");
-   //semop(sem_id, &sb,  1);
+   semop(sem_id, &sb,  1);
    if (char_shm[block_size] == 0)
    {
     shmdt(char_shm);
     return 0;    
    }
   } 
-
-  
-  
-
-  
  }
  else
  {
@@ -100,13 +93,14 @@ int main(int argc, char* argv[])
   
   while((chars = read(file_ds, char_shm, block_size)) > 0)
   {
-   char_shm[block_size + 1] = chars; 
-   char_shm[block_size] = 1;
+   char_shm[block_size] = chars; 
    semop(sem_id, &sb, 1);
    semop(sem_id, &sb2, 1);
   }
 
-  char_shm[block_size] = 0;
+  char_shm[block_size] = 0;    
+  semop(sem_id, &sb, 1);
+
   shmdt(char_shm);
 
  }
