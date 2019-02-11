@@ -17,10 +17,7 @@ int main(int argc, char* argv[])
  struct send {long mtype; char text[block_size]; int size;} snd;
  int file_ds;
  pid_t pid;
- struct sembuf sb, sb2;
- //char char_buff[block_size];
  ssize_t chars;
- char *char_shm;
 
  if (argc < 3)
  {
@@ -59,7 +56,6 @@ int main(int argc, char* argv[])
  }
  else
  {
- 
   if ((file_ds = open(argv[1], O_RDONLY)) == -1)
   {
    printf("Ошибка открытия файла %d \n", errno);
