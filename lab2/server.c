@@ -3,18 +3,29 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <fcntl.h>
+
+#define block_size 1024
 
 int main(int argc, char* argv[])
 {
 
-	int a = 228;
-
+	char buff[block_size];
+	int count_chars;
 
 	int sockid = socket(AF_INET, SOCK_STREAM, 0);
 
 	if (sockid < 0)
 	{
 		printf("Ошибка создания сокета\n");
+		return -1;
+	}
+
+	int file;
+
+	if ((file = open("prg.out", O_WRONLY | O_CREAT, 0744)) == -1)
+	{
+		printf("Ошибка создания файл\n");
 		return -1;
 	}
 
@@ -36,8 +47,12 @@ int main(int argc, char* argv[])
 
 	printf("Client подключен\n");	
 	
-	read(chan, &a, sizeof(a));
-	printf("%d\n", a);
+	while ((count_chars = read(chan, buff, block_size)) > 0)
+	{
+		write(file, buff, count_chars);
+	}
+	
+	printf("End\n");
 	close(sockid);
 
 	return 0;

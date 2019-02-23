@@ -3,11 +3,15 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <fcntl.h>
+
+#define block_size 1024
 
 int main(int argc, char* argv[])
 {
 
-	int a = 1337;
+	char buff[block_size];
+	int count_chars;
 
 	if (argc < 2)
 	{
@@ -23,6 +27,14 @@ int main(int argc, char* argv[])
 		return -1;
 	}
 
+	int file;
+
+	if ((file = open(argv[1], O_RDONLY)) == -1)
+	{
+		printf("Ошибка открытия файла\n");
+		return -1;
+	}
+
 	struct sockaddr_in addr;
 
 	addr.sin_family = AF_INET;
@@ -35,7 +47,11 @@ int main(int argc, char* argv[])
 		return -1;
 	}
 	
-	write(sockid, &a, sizeof(a));
+	while ((count_chars = read(file, buff, block_size)) > 0)
+	{
+		write(sockid, &buff, count_chars);
+	}
+
 	close(sockid);
 
 	return 0;
